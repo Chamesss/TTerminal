@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>TTerminal</title>
+  <link rel="stylesheet" href="xterm.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="frame">
+    <div class="grip top" data-edge="3"></div>
+    <div class="grip tl" data-edge="4"></div>
+    <div class="grip tr" data-edge="5"></div>
+
+    <header id="bar">
+      <span class="dot"></span>
+      <span id="title">bash</span>
+      <nav class="ctl">
+        <button data-cmd="m" title="Minimize"><svg viewBox="0 0 10 10"><path d="M1 5h8"/></svg></button>
+        <button data-cmd="x" title="Maximize"><svg viewBox="0 0 10 10"><rect x="1.5" y="1.5" width="7" height="7" rx="1.5"/></svg></button>
+        <button data-cmd="q" title="Close" class="close"><svg viewBox="0 0 10 10"><path d="M2 2l6 6M8 2l-6 6"/></svg></button>
+      </nav>
+    </header>
+
+    <main id="wrap"><div id="term"></div></main>
+  </div>
+
+  <script src="xterm.js"></script>
+  <script src="addon-fit.js"></script>
+  <script src="addon-web-links.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
