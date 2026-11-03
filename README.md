@@ -139,7 +139,7 @@ The executable is written to `linux/build/tterminal`. `make deb` and `make tar` 
 
 ### Releases
 
-Pushing a tag such as `v1.1.0` runs `.github/workflows/release.yml`, which builds `TTerminal.exe` and the Linux `.deb` and `.tar.gz` files for x64 and arm64, then publishes them as a GitHub release.
+To publish a release, push a tag such as `v1.1.0`, or open **Actions → Release → Run workflow** and enter a version. Either way `.github/workflows/release.yml` builds `TTerminal.exe` and the Linux `.deb` and `.tar.gz` files for x64 and arm64, then publishes them as a GitHub release.
 
 ## How it works
 

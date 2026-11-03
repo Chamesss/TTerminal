@@ -1,14 +1,25 @@
 name: Release
 
-# Push a tag like v1.1.0 to build Windows and Linux and publish a GitHub release.
-# Run it manually to build without releasing (files land in the run's artifacts).
+# Publish a release either way:
+#   - push a tag like v1.1.0, or
+#   - Actions > Release > Run workflow, entering a version (the tag is created for you).
+# A manual run with no version only builds (files land in the run's artifacts).
 on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release, e.g. 1.1.0 (leave empty to only build)'
+        required: false
+        default: ''
 
 permissions:
   contents: write
+
+env:
+  # Tag name on tag pushes, the entered version on manual runs
+  TAG: ${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || inputs.version && format('v{0}', inputs.version) || '' }}
 
 jobs:
   linux:
@@ -22,7 +33,7 @@ jobs:
       - name: Install build dependencies
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgtk-3-dev libwebkit2gtk-4.1-dev
       - name: Version
-        run: echo "VERSION=$(echo '${{ github.ref_name }}' | sed -n 's/^v//p' | grep . || echo 0.0.0-dev)" >> "$GITHUB_ENV"
+        run: echo "VERSION=$(echo "$TAG" | sed -n 's/^vv*//p' | grep . || echo 0.0.0-dev)" >> "$GITHUB_ENV"
       - name: Build .deb and .tar.gz
         run: make -C linux deb tar VERSION="$VERSION"
       - uses: actions/upload-artifact@v4
@@ -42,7 +53,7 @@ jobs:
       - name: Build TTerminal.exe
         shell: bash
         run: |
-          VERSION=$(echo '${{ github.ref_name }}' | sed -n 's/^v//p' | grep . || echo 1.0.0)
+          VERSION=$(echo "$TAG" | sed -n 's/^vv*//p' | grep . || echo 1.0.0)
           dotnet publish -c Release -o dist -p:Version="$VERSION"
       - uses: actions/upload-artifact@v4
         with:
@@ -50,7 +61,7 @@ jobs:
           path: dist/TTerminal.exe
 
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || inputs.version != ''
     needs: [linux, windows]
     runs-on: ubuntu-latest
     steps:
@@ -60,5 +71,19 @@ jobs:
           merge-multiple: true
       - uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ env.TAG }}
+          name: TTerminal ${{ env.TAG }}
+          target_commitish: ${{ github.sha }}
           files: out/*
           generate_release_notes: true
+          body: |
+            ## Download
+
+            | Platform | File |
+            |---|---|
+            | Windows 11 (x64) | `TTerminal.exe` (needs Git for Windows and the .NET 9 Desktop Runtime) |
+            | Ubuntu / Debian (x64) | `tterminal_*_amd64.deb` |
+            | Ubuntu / Debian (ARM64) | `tterminal_*_arm64.deb` |
+            | Other Linux distros | `tterminal-*-linux-*.tar.gz` (needs GTK 3 and WebKitGTK 4.1) |
+
+            On Ubuntu 22.04 or newer: `sudo apt install ./tterminal_*_amd64.deb`, then open TTerminal from the app launcher.
