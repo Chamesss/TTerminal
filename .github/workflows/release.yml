@@ -1,0 +1,64 @@
+name: Release
+
+# Push a tag like v1.1.0 to build Windows and Linux and publish a GitHub release.
+# Run it manually to build without releasing (files land in the run's artifacts).
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  linux:
+    strategy:
+      matrix:
+        # Built on 22.04 so the binary also runs on 22.04; works on 24.04 and newer
+        runner: [ubuntu-22.04, ubuntu-22.04-arm]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build dependencies
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libgtk-3-dev libwebkit2gtk-4.1-dev
+      - name: Version
+        run: echo "VERSION=$(echo '${{ github.ref_name }}' | sed -n 's/^v//p' | grep . || echo 0.0.0-dev)" >> "$GITHUB_ENV"
+      - name: Build .deb and .tar.gz
+        run: make -C linux deb tar VERSION="$VERSION"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-${{ matrix.runner }}
+          path: |
+            linux/build/*.deb
+            linux/build/*.tar.gz
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - name: Build TTerminal.exe
+        shell: bash
+        run: |
+          VERSION=$(echo '${{ github.ref_name }}' | sed -n 's/^v//p' | grep . || echo 1.0.0)
+          dotnet publish -c Release -o dist -p:Version="$VERSION"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: dist/TTerminal.exe
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [linux, windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: out/*
+          generate_release_notes: true

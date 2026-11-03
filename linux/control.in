@@ -1,0 +1,13 @@
+Package: tterminal
+Version: @VERSION@
+Architecture: @ARCH@
+Maintainer: Chamesss <chamesss@users.noreply.github.com>
+Installed-Size: @SIZE@
+Depends: bash, libgtk-3-0 (>= 3.24), libwebkit2gtk-4.1-0 (>= 2.40)
+Section: x11
+Priority: optional
+Homepage: https://github.com/Chamesss/TTerminal
+Description: Tidy Terminal - a lightweight, Hyprland-inspired bash terminal
+ A small native window running bash on a pseudo-terminal, with a
+ frosted, rounded frame and an animated gradient border. The terminal
+ is rendered by xterm.js (WebGL) inside WebKitGTK.
