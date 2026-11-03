@@ -5,7 +5,7 @@
 #   make tar VERSION=x    build a .tar.gz in build/
 
 PREFIX  ?= /usr/local
-VERSION ?= 1.0.0
+VERSION ?= 1.1.0
 ARCH    ?= $(shell dpkg --print-architecture 2>/dev/null || uname -m)
 PKGS    := gtk+-3.0 webkit2gtk-4.1
 B       := build

@@ -12,16 +12,37 @@ A single small executable that runs a real bash session inside a frosted-glass w
 
 ## Features
 
-- **Real bash.** Git Bash runs through the Windows pseudo-console (ConPTY), the same layer Windows Terminal uses. Colors, prompts, `vim`, `less`, `git` and other full-screen programs work as expected.
+- **Runs on Windows and Linux.** The same interface on Windows 11 and Ubuntu, with a native host for each.
+- **Real bash.** On Windows, Git Bash runs through the Windows pseudo-console (ConPTY), the same layer Windows Terminal uses. On Linux, bash runs on a standard pseudo-terminal. Colors, prompts, `vim`, `less`, `git` and other full-screen programs work as expected.
 - **Hyprland-style window.** Acrylic blur, rounded corners, an animated cyan → green → violet border that dims when the window loses focus, and a pop-in open animation.
-- **Single, small executable.** About 2 MB with the web assets embedded. No installer.
+- **Single, small executable.** About 2 MB on Windows and about 250 KB on Linux, with the web assets embedded. No installer needed.
 - **Fast startup.** The prompt is ready in about 0.6 s; bash starts in parallel with the window.
-- **Native window behavior.** Snap layouts, Win+Arrow, edge resizing and double-click-to-maximize.
+- **Native window behavior.** Snap layouts, Win+Arrow, edge resizing and double-click-to-maximize. On Linux, drag, resize, maximize and the primary selection work too.
+- **Light on resources.** The animated border redraws only its own edge pixels and pauses when the window is unfocused. On Linux, output is paced to rendering speed, so memory stays flat even under floods of output.
 - **GPU rendering.** xterm.js with the WebGL renderer, 10,000 lines of scrollback, clickable links and truecolor.
 
 | Git workflow | Full-screen apps |
 |---|---|
 | ![git](docs/screenshots/git.png) | ![vim](docs/screenshots/vim.png) |
+
+<div align="center">
+
+**On Ubuntu**
+
+![TTerminal on Ubuntu](docs/screenshots/linux.png)
+
+</div>
+
+## Download
+
+Get the latest version from the [releases page](https://github.com/Chamesss/TTerminal/releases/latest):
+
+| Platform | File |
+|---|---|
+| Windows 11 (x64) | `TTerminal.exe` |
+| Ubuntu / Debian (x64) | `tterminal_<version>_amd64.deb` |
+| Ubuntu / Debian (ARM64) | `tterminal_<version>_arm64.deb` |
+| Other Linux distros | `tterminal-<version>-linux-<arch>.tar.gz` |
 
 ## Requirements
 
