@@ -1,6 +1,10 @@
 'use strict';
 
-const post = (msg) => window.chrome.webview.postMessage(msg);
+// Host bridge: WebView2 on Windows, WebKitGTK on Linux
+const webview = window.chrome?.webview;
+const post = webview
+  ? (msg) => webview.postMessage(msg)
+  : (msg) => window.webkit.messageHandlers.tt.postMessage(msg);
 const $ = (id) => document.getElementById(id);
 
 const store = {
@@ -9,7 +13,7 @@ const store = {
 };
 
 const term = new Terminal({
-  fontFamily: '"JetBrainsMono Nerd Font", "Cascadia Code", "Cascadia Mono", Consolas, monospace',
+  fontFamily: '"JetBrainsMono Nerd Font", "Cascadia Code", "Cascadia Mono", Consolas, "Ubuntu Sans Mono", "DejaVu Sans Mono", monospace',
   fontSize: store.get('fontSize', 14),
   lineHeight: 1.15,
   cursorBlink: true,
@@ -19,7 +23,7 @@ const term = new Terminal({
   allowProposedApi: true,
   scrollback: 10000,
   overviewRuler: { width: 6 },
-  windowsPty: { backend: 'conpty' },
+  ...(webview && { windowsPty: { backend: 'conpty' } }),
   theme: {
     background: 'rgba(0,0,0,0)',
     foreground: '#c8d3f5',
@@ -68,9 +72,10 @@ term.onTitleChange((t) => {
   post('t' + title);
 });
 
-window.chrome.webview.addEventListener('message', ({ data }) => {
+// Host messages. Output resolves once parsed, so the Linux host can pace the stream.
+const onHost = (data) => {
   switch (data[0]) {
-    case 'o': term.write(data.slice(1)); break;
+    case 'o': return new Promise((done) => term.write(data.slice(1), done));
     case 'p': if (data.length > 1) term.paste(data.slice(1)); break;
     case 'f':
       document.body.classList.toggle('blurred', data[1] === '0');
@@ -78,7 +83,9 @@ window.chrome.webview.addEventListener('message', ({ data }) => {
       break;
     case 'm': document.body.classList.toggle('max', data[1] === '1'); break;
   }
-});
+};
+window.__tt = onHost;
+webview?.addEventListener('message', ({ data }) => onHost(data));
 
 // Fit to window, debounced to one per frame
 let fitQueued = false;
@@ -129,6 +136,19 @@ $('wrap').addEventListener('wheel', (e) => {
 // Window chrome
 document.querySelectorAll('.ctl button').forEach((b) =>
   b.addEventListener('click', () => post(b.dataset.cmd)));
+
+// Linux: drag and double-click the title bar natively, X11-style primary selection
+if (!webview) {
+  $('bar').addEventListener('mousedown', (e) => {
+    if (e.button === 0 && !e.target.closest('.ctl')) post(e.detail === 2 ? 'x' : 'd');
+  });
+  $('wrap').addEventListener('mouseup', (e) => {
+    if (e.button === 0 && term.hasSelection()) post('y' + term.getSelection());
+  });
+  $('wrap').addEventListener('mousedown', (e) => {
+    if (e.button === 1 && term.modes.mouseTrackingMode === 'none') { e.preventDefault(); post('P'); }
+  });
+}
 
 document.querySelectorAll('.grip').forEach((g) =>
   g.addEventListener('mousedown', (e) => { if (e.button === 0) post('s' + g.dataset.edge); }));

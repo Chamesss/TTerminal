@@ -1,0 +1,17 @@
+[Desktop Entry]
+Type=Application
+Name=TTerminal
+GenericName=Terminal
+Comment=Lightweight bash terminal
+Exec=tterminal
+Icon=tterminal
+Terminal=false
+Categories=System;TerminalEmulator;
+Keywords=shell;prompt;command;bash;terminal;
+StartupNotify=true
+StartupWMClass=tterminal
+Actions=new-window;
+
+[Desktop Action new-window]
+Name=New Window
+Exec=tterminal

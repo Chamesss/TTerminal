@@ -13,7 +13,7 @@
 
 @property --a {
   syntax: '<angle>';
-  inherits: false;
+  inherits: true;
   initial-value: 45deg;
 }
 
@@ -26,7 +26,7 @@ html, body {
   overflow: hidden;
   background: transparent;
   color: var(--fg);
-  font: 12px "Segoe UI Variable Text", "Segoe UI", sans-serif;
+  font: 12px "Segoe UI Variable Text", "Segoe UI", Ubuntu, Cantarell, system-ui, sans-serif;
   user-select: none;
 }
 
@@ -40,8 +40,35 @@ html, body {
   animation: popin .38s var(--ease) both;
 }
 
-/* Animated gradient border, grey when unfocused */
-#frame::before,
+/* Animated gradient border, grey when unfocused.
+   Drawn as four thin edges, each showing its slice of one window-sized gradient,
+   so each frame repaints only the border pixels, not the window. */
+#ring {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  transition: opacity .35s ease;
+  animation: spin 8s linear infinite;
+}
+#ring i {
+  position: absolute;
+  background: conic-gradient(from var(--a), var(--c1), var(--c2), var(--c3), var(--c1)) no-repeat;
+  background-size: 100vw 100vh;
+}
+#ring .t, #ring .b {
+  left: 0;
+  right: 0;
+  height: var(--r);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+#ring .t { top: 0; padding: var(--bw) var(--bw) 0; border-radius: var(--r) var(--r) 0 0; background-position: 0 0; }
+#ring .b { bottom: 0; padding: 0 var(--bw) var(--bw); border-radius: 0 0 var(--r) var(--r); background-position: 0 100%; }
+#ring .l, #ring .r { top: var(--r); bottom: var(--r); width: var(--bw); }
+#ring .l { left: 0; background-position: 0 50%; }
+#ring .r { right: 0; background-position: 100% 50%; }
+
 #frame::after {
   content: '';
   position: absolute;
@@ -53,25 +80,20 @@ html, body {
   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   mask-composite: exclude;
   transition: opacity .35s ease;
-}
-#frame::before {
-  background: conic-gradient(from var(--a), var(--c1), var(--c2), var(--c3), var(--c1));
-  animation: spin 8s linear infinite;
-}
-#frame::after {
   background: var(--inactive);
   opacity: 0;
 }
-body.blurred #frame::before { opacity: 0; }
+body.blurred #ring { opacity: 0; animation-play-state: paused; }
 body.blurred #frame::after { opacity: 1; }
 body.blurred .dot { filter: grayscale(1); opacity: .5; }
 
 body.max #frame { border-radius: 0; }
-body.max #frame::before,
+body.max #ring,
 body.max #frame::after,
 body.max .grip { display: none; }
 
 @keyframes spin { to { --a: 405deg; } }
+@media (prefers-reduced-motion: reduce) { #ring { animation: none; } }
 @keyframes popin { from { opacity: 0; transform: scale(.94); } }
 
 #bar {
@@ -137,6 +159,18 @@ body.max .grip { display: none; }
 .grip.top { top: 0; left: 10px; right: 10px; height: 5px; cursor: ns-resize; }
 .grip.tl { top: 0; left: 0; width: 10px; height: 10px; cursor: nwse-resize; }
 .grip.tr { top: 0; right: 0; width: 10px; height: 10px; cursor: nesw-resize; }
+
+/* Linux: no native resize borders, and no blur behind the window */
+.grip:is(.l, .r, .b, .bl, .br) { display: none; }
+.gtk body:not(.max) .grip:is(.l, .r, .b, .bl, .br) { display: block; }
+.grip.l { top: 10px; bottom: 10px; left: 0; width: 5px; cursor: ew-resize; }
+.grip.r { top: 10px; bottom: 10px; right: 0; width: 5px; cursor: ew-resize; }
+.grip.b { left: 10px; right: 10px; bottom: 0; height: 5px; cursor: ns-resize; }
+.grip.bl { bottom: 0; left: 0; width: 10px; height: 10px; cursor: nesw-resize; }
+.grip.br { bottom: 0; right: 0; width: 10px; height: 10px; cursor: nwse-resize; }
+:root.gtk { --tint: rgba(12, 14, 22, .9); }
+:root.opaque { --tint: #0c0e16; }
+.opaque #frame { border-radius: 0; }
 
 #wrap {
   flex: 1;
